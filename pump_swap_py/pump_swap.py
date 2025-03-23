@@ -109,10 +109,8 @@ def buy(pair_address: str, sol_in: float = 0.1, slippage: int = 5) -> bool:
         )
 
         print("Creating swap instructions...")
-        random_fee_recipient = random.choice(PROTOCOL_FEE_RECIPIENTS)
-        fee_recipient_token_account = get_associated_token_address(
-            random_fee_recipient, pool_keys.quote_mint
-        )
+
+        PROTOCOL_FEE_RECIPIENT_TOKEN_ACCOUNT = get_associated_token_address(PROTOCOL_FEE_RECIPIENT, pool_keys.quote_mint)
         
         keys = [
             AccountMeta(pubkey=pool_keys.amm, is_signer=False, is_writable=True),
@@ -124,8 +122,8 @@ def buy(pair_address: str, sol_in: float = 0.1, slippage: int = 5) -> bool:
             AccountMeta(pubkey=wsol_token_account, is_signer=False, is_writable=True),
             AccountMeta(pubkey=pool_keys.pool_base_token_account, is_signer=False, is_writable=True),
             AccountMeta(pubkey=pool_keys.pool_quote_token_account, is_signer=False, is_writable=True),
-            AccountMeta(pubkey=random_fee_recipient, is_signer=False, is_writable=False),
-            AccountMeta(pubkey=fee_recipient_token_account, is_signer=False, is_writable=True),
+            AccountMeta(pubkey=PROTOCOL_FEE_RECIPIENT, is_signer=False, is_writable=False),
+            AccountMeta(pubkey=PROTOCOL_FEE_RECIPIENT_TOKEN_ACCOUNT, is_signer=False, is_writable=True),
             AccountMeta(pubkey=base_token_program, is_signer=False, is_writable=False),
             AccountMeta(pubkey=TOKEN_PROGRAM_ID, is_signer=False, is_writable=False),
             AccountMeta(pubkey=SYSTEM_PROGRAM, is_signer=False, is_writable=False),
@@ -257,7 +255,6 @@ def sell(pair_address: str, percentage: int = 100, slippage: int = 5) -> bool:
         print(f"Base Amount In: {base_amount_in / token_decimal}, Minimum Quote Amount Out: {min_quote_amount_out / sol_decimal}")
 
         print("Creating swap instructions...")
-        PROTOCOL_FEE_RECIPIENT = random.choice(PROTOCOL_FEE_RECIPIENTS)
         PROTOCOL_FEE_RECIPIENT_TOKEN_ACCOUNT = get_associated_token_address(PROTOCOL_FEE_RECIPIENT, pool_keys.quote_mint)
         
         keys = [
