@@ -51,38 +51,30 @@ def buy(pair_address: str, sol_in: float = 0.1, slippage: int = 5) -> bool:
         print("Calculating transaction amounts...")
         sol_decimal = 1e9
         token_decimal = 10**decimal
-        amount_in = int(sol_in * sol_decimal)
         slippage_adjustment = 1 + (slippage / 100)
         max_quote_amount_in = int((sol_in * slippage_adjustment) * sol_decimal)
 
         base_reserve, quote_reserve = get_pool_reserves(pool_keys)
+        print(sol_in, base_reserve, quote_reserve)
         base_amount_out = sol_for_tokens(sol_in, base_reserve, quote_reserve)
         base_amount_out = int(base_amount_out * token_decimal)
         print(f"Max Quote Amount In: {max_quote_amount_in / sol_decimal} | Base Amount Out: {base_amount_out / token_decimal}")
 
         print("Checking for existing token account...")
-        token_account_check = client.get_token_accounts_by_owner(
-            payer_keypair.pubkey(), TokenAccountOpts(mint), Processed
-        )
+        token_account_check = client.get_token_accounts_by_owner(payer_keypair.pubkey(), TokenAccountOpts(mint), Processed)
         
         if token_account_check.value:
             token_account = token_account_check.value[0].pubkey
             token_account_instruction = None
             print("Existing token account found.")
         else:
-            token_account = get_associated_token_address(
-                payer_keypair.pubkey(), mint, base_token_program
-            )
-            token_account_instruction = create_associated_token_account(
-                payer_keypair.pubkey(), payer_keypair.pubkey(), mint, base_token_program
-            )
+            token_account = get_associated_token_address(payer_keypair.pubkey(), mint, base_token_program)
+            token_account_instruction = create_associated_token_account(payer_keypair.pubkey(), payer_keypair.pubkey(), mint, base_token_program)
             print("No existing token account found; creating associated token account.")
 
         print("Generating seed for WSOL account...")
         seed = base64.urlsafe_b64encode(os.urandom(24)).decode("utf-8")
-        wsol_token_account = Pubkey.create_with_seed(
-            payer_keypair.pubkey(), seed, TOKEN_PROGRAM_ID
-        )
+        wsol_token_account = Pubkey.create_with_seed(payer_keypair.pubkey(), seed, TOKEN_PROGRAM_ID)
         balance_needed = Token.get_min_balance_rent_for_exempt_for_account(client)
 
         print("Creating and initializing WSOL account...")
@@ -92,7 +84,7 @@ def buy(pair_address: str, sol_in: float = 0.1, slippage: int = 5) -> bool:
                 to_pubkey=wsol_token_account,
                 base=payer_keypair.pubkey(),
                 seed=seed,
-                lamports=int(balance_needed + amount_in),
+                lamports=int(balance_needed + max_quote_amount_in),
                 space=ACCOUNT_SPACE,
                 owner=TOKEN_PROGRAM_ID,
             )
@@ -108,9 +100,6 @@ def buy(pair_address: str, sol_in: float = 0.1, slippage: int = 5) -> bool:
         )
 
         print("Creating swap instructions...")
-
-        PROTOCOL_FEE_RECIPIENT_TOKEN_ACCOUNT = get_associated_token_address(PROTOCOL_FEE_RECIPIENT, pool_keys.quote_mint)
-        
         keys = [
             AccountMeta(pubkey=pool_keys.amm, is_signer=False, is_writable=True),
             AccountMeta(pubkey=payer_keypair.pubkey(), is_signer=True, is_writable=True),
@@ -171,14 +160,14 @@ def buy(pair_address: str, sol_in: float = 0.1, slippage: int = 5) -> bool:
         print("Sending transaction...")
         txn_sig = client.send_transaction(
             txn=VersionedTransaction(compiled_message, [payer_keypair]),
-            opts=TxOpts(skip_preflight=False),
+            opts=TxOpts(skip_preflight=False)
         ).value
-        print("Transaction Signature:", txn_sig)
-
+        print(f"Transaction Signature: {txn_sig}")
+        
         print("Confirming transaction...")
         confirmed = confirm_txn(txn_sig)
-
-        print("Transaction confirmed:", confirmed)
+        
+        print(f"Transaction confirmed: {confirmed}")
         return confirmed
     except Exception as e:
         print("Error occurred during transaction:", e)
@@ -253,9 +242,7 @@ def sell(pair_address: str, percentage: int = 100, slippage: int = 5) -> bool:
         min_quote_amount_out = int((sol_out * slippage_adjustment) * sol_decimal)
         print(f"Base Amount In: {base_amount_in / token_decimal}, Minimum Quote Amount Out: {min_quote_amount_out / sol_decimal}")
 
-        print("Creating swap instructions...")
-        PROTOCOL_FEE_RECIPIENT_TOKEN_ACCOUNT = get_associated_token_address(PROTOCOL_FEE_RECIPIENT, pool_keys.quote_mint)
-        
+        print("Creating swap instructions...")    
         keys = [
             AccountMeta(pubkey=pool_keys.amm, is_signer=False, is_writable=True),
             AccountMeta(pubkey=payer_keypair.pubkey(), is_signer=True, is_writable=True),
@@ -325,7 +312,7 @@ def sell(pair_address: str, percentage: int = 100, slippage: int = 5) -> bool:
             opts=TxOpts(skip_preflight=False)
         ).value
         print(f"Transaction Signature: {txn_sig}")
-
+        
         print("Confirming transaction...")
         confirmed = confirm_txn(txn_sig)
         
