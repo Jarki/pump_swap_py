@@ -127,6 +127,8 @@ def fetch_pair_from_rpc(base_str: str) -> Optional[str]:
             best_pool_addr = str(pool.pubkey)
     return best_pool_addr
 
+
+# NOT SURE IF THIS IS CORRECT
 def sol_for_tokens(sol_in, pool_base, pool_quote, protocol_fee_bp=5, lp_fee_bp=20):
     user_quote_in = round(sol_in * 10000 / (10000 - protocol_fee_bp))
     protocol_fee = user_quote_in * protocol_fee_bp // 10000
@@ -139,6 +141,7 @@ def sol_for_tokens(sol_in, pool_base, pool_quote, protocol_fee_bp=5, lp_fee_bp=2
     tokens_out = pool_base - new_base
     return round(tokens_out)
 
+# NOT SURE IF THIS IS CORRECT
 def tokens_for_sol(token_amount, base_vault_balance, quote_vault_balance, swap_fee=0.25):
     effective_tokens_sold = token_amount * (1 - (swap_fee / 100))
     constant_product = base_vault_balance * quote_vault_balance
