@@ -1,6 +1,5 @@
 import base64
 import os
-import random
 import struct
 from typing import Optional
 
