@@ -62,8 +62,8 @@ def get_pool_reserves(pool_keys: PoolKeys):
         quote_account = balances[0]
         base_account = balances[1]
         
-        quote_account_balance = quote_account.data.parsed['info']['tokenAmount']['uiAmount']
-        base_account_balance = base_account.data.parsed['info']['tokenAmount']['uiAmount']
+        quote_account_balance = int(quote_account.data.parsed['info']['tokenAmount']['amount'])
+        base_account_balance = int(base_account.data.parsed['info']['tokenAmount']['amount'])
         
         if quote_account_balance is None or base_account_balance is None:
             return None, None
@@ -127,26 +127,10 @@ def fetch_pair_from_rpc(base_str: str) -> Optional[str]:
             best_pool_addr = str(pool.pubkey)
     return best_pool_addr
 
-# NOT SURE IF THIS IS CORRECT
-def sol_for_tokens(sol_in, pool_base, pool_quote, lp_fee_bp=20, protocol_fee_bp=5):
-    user_quote_in = round(sol_in * 10000 / (10000 - protocol_fee_bp))
-    protocol_fee = user_quote_in * protocol_fee_bp // 10000
-    total_fee = user_quote_in * (protocol_fee_bp + lp_fee_bp) // 10000
-    lp_fee = total_fee - protocol_fee
-    effective_sol = sol_in - lp_fee
-    k = pool_base * pool_quote
-    new_quote = pool_quote + effective_sol
-    new_base = k / new_quote
-    tokens_out = pool_base - new_base
-    return round(tokens_out)
+def sol_for_tokens(quote_amount_in, pool_base_token_reserves, pool_quote_token_reserves):
+    base_amount_out = pool_base_token_reserves - (pool_base_token_reserves * pool_quote_token_reserves) // (pool_quote_token_reserves + quote_amount_in)
+    return int(base_amount_out)
 
-# NOT SURE IF THIS IS CORRECT
-def tokens_for_sol(token_amount, pool_base, pool_quote, lp_fee_bp=20, protocol_fee_bp=5):
-    k = pool_base * pool_quote
-    new_base = pool_base + token_amount
-    new_quote = k / new_base
-    ideal_output = pool_quote - new_quote
-    lp_fee = ideal_output * (lp_fee_bp / 10000)
-    protocol_fee = ideal_output * (protocol_fee_bp / 10000)
-    user_quote_out = ideal_output - (lp_fee + protocol_fee)
-    return round(user_quote_out, 9)
+def tokens_for_sol(base_amount_in, pool_base_token_reserves, pool_quote_token_reserves):
+    quote_amount_out = pool_quote_token_reserves - (pool_base_token_reserves * pool_quote_token_reserves) // (pool_base_token_reserves + base_amount_in)
+    return quote_amount_out
