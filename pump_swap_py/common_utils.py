@@ -6,9 +6,7 @@ from solders.signature import Signature #type: ignore
 from solders.pubkey import Pubkey  # type: ignore
 from config import client, payer_keypair
 
-def get_token_balance(mint_str: str) -> float | None:
-
-    mint = Pubkey.from_string(mint_str)
+def get_token_balance(mint: Pubkey) -> float | None:
     response = client.get_token_accounts_by_owner_json_parsed(
         payer_keypair.pubkey(),
         TokenAccountOpts(mint=mint),
