@@ -49,23 +49,23 @@ def fetch_pool_keys(pair_address: str):
 def get_pool_reserves(pool_keys: PoolKeys):
     try:
         
-        quote_vault = pool_keys.pool_quote_token_account # SOL
         base_vault = pool_keys.pool_base_token_account
+        quote_vault = pool_keys.pool_quote_token_account # SOL
         
         balances_response = client.get_multiple_accounts_json_parsed(
-            [quote_vault, base_vault], 
+            [base_vault, quote_vault], 
             Processed
         )
         
         balances = balances_response.value
 
-        quote_account = balances[0]
-        base_account = balances[1]
+        base_account = balances[0]
+        quote_account = balances[1]
         
-        quote_account_balance = int(quote_account.data.parsed['info']['tokenAmount']['amount'])
         base_account_balance = int(base_account.data.parsed['info']['tokenAmount']['amount'])
+        quote_account_balance = int(quote_account.data.parsed['info']['tokenAmount']['amount'])
         
-        if quote_account_balance is None or base_account_balance is None:
+        if base_account_balance is None or quote_account_balance is None:
             return None, None
         
         return base_account_balance, quote_account_balance
