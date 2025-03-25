@@ -127,9 +127,8 @@ def fetch_pair_from_rpc(base_str: str) -> Optional[str]:
             best_pool_addr = str(pool.pubkey)
     return best_pool_addr
 
-
 # NOT SURE IF THIS IS CORRECT
-def sol_for_tokens(sol_in, pool_base, pool_quote, protocol_fee_bp=5, lp_fee_bp=20):
+def sol_for_tokens(sol_in, pool_base, pool_quote, lp_fee_bp=20, protocol_fee_bp=5):
     user_quote_in = round(sol_in * 10000 / (10000 - protocol_fee_bp))
     protocol_fee = user_quote_in * protocol_fee_bp // 10000
     total_fee = user_quote_in * (protocol_fee_bp + lp_fee_bp) // 10000
@@ -142,9 +141,12 @@ def sol_for_tokens(sol_in, pool_base, pool_quote, protocol_fee_bp=5, lp_fee_bp=2
     return round(tokens_out)
 
 # NOT SURE IF THIS IS CORRECT
-def tokens_for_sol(token_amount, base_vault_balance, quote_vault_balance, swap_fee=0.25):
-    effective_tokens_sold = token_amount * (1 - (swap_fee / 100))
-    constant_product = base_vault_balance * quote_vault_balance
-    updated_quote_vault_balance = constant_product / (base_vault_balance + effective_tokens_sold)
-    sol_received = quote_vault_balance - updated_quote_vault_balance
-    return round(sol_received, 9)
+def tokens_for_sol(token_amount, pool_base, pool_quote, lp_fee_bp=20, protocol_fee_bp=5):
+    k = pool_base * pool_quote
+    new_base = pool_base + token_amount
+    new_quote = k / new_base
+    ideal_output = pool_quote - new_quote
+    lp_fee = ideal_output * (lp_fee_bp / 10000)
+    protocol_fee = ideal_output * (protocol_fee_bp / 10000)
+    user_quote_out = ideal_output - (lp_fee + protocol_fee)
+    return round(user_quote_out, 9)
