@@ -133,4 +133,7 @@ def sol_for_tokens(quote_amount_in, pool_base_token_reserves, pool_quote_token_r
 
 def tokens_for_sol(base_amount_in, pool_base_token_reserves, pool_quote_token_reserves):
     quote_amount_out = pool_quote_token_reserves - (pool_base_token_reserves * pool_quote_token_reserves) // (pool_base_token_reserves + base_amount_in)
-    return quote_amount_out
+    lp_fee = int(quote_amount_out * .002)
+    protocol_fee = int(quote_amount_out * .0005)
+    fees = lp_fee + protocol_fee
+    return int(quote_amount_out - fees)
