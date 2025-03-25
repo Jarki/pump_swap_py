@@ -184,7 +184,6 @@ def sell(pair_address: str, percentage: int = 100, slippage: int = 5) -> bool:
         print("Pool keys fetched successfully.")
 
         mint = pool_keys.base_mint
-        mint_str = str(mint)
         token_info = client.get_account_info_json_parsed(mint).value
         base_token_program = token_info.owner
         decimal = token_info.data.parsed['info']['decimals']
@@ -223,7 +222,7 @@ def sell(pair_address: str, percentage: int = 100, slippage: int = 5) -> bool:
         )
 
         print("Retrieving token balance...")
-        token_balance = get_token_balance(mint_str)
+        token_balance = get_token_balance(mint)
         if token_balance == 0 or token_balance is None:
             print("Token balance is zero. Nothing to sell.")
             return False
