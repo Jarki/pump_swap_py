@@ -1,6 +1,6 @@
 # pump_swap_py
 
-Python library to trade on pump.swap. 
+Python library to trade on Pump Swap (AMM). 
 
 ```
 pip install solana==0.36.1 solders==0.23.0
