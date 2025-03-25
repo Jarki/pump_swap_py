@@ -18,11 +18,10 @@ def get_token_balance(mint_str: str) -> float | None:
     if response.value:
         accounts = response.value
         if accounts:
-            print(accounts[0].account.data.parsed['info'])
-            token_amount = accounts[0].account.data.parsed['info']['tokenAmount']['uiAmount']
+            token_amount = accounts[0].account.data.parsed['info']['tokenAmount']['amount']
             if token_amount:
-                return float(token_amount)
-    return None, None
+                return int(token_amount)
+    return None
 
 def confirm_txn(txn_sig: Signature, max_retries: int = 20, retry_interval: int = 3) -> bool:
     retries = 1
