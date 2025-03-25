@@ -26,10 +26,10 @@ from spl.token.instructions import (
     initialize_account,
 )
 
-from common_utils import confirm_txn, get_token_balance
-from pool_utils import *
 from config import client, payer_keypair, UNIT_BUDGET, UNIT_PRICE
 from constants import *
+from common_utils import confirm_txn, get_token_balance
+from pool_utils import *
 
 def buy(pair_address: str, sol_in: float = 0.1, slippage: int = 5) -> bool:
     try:
@@ -55,9 +55,8 @@ def buy(pair_address: str, sol_in: float = 0.1, slippage: int = 5) -> bool:
         max_quote_amount_in = int((sol_in * slippage_adjustment) * sol_decimal)
 
         base_reserve, quote_reserve = get_pool_reserves(pool_keys)
-        print(sol_in, base_reserve, quote_reserve)
-        base_amount_out = sol_for_tokens(sol_in, base_reserve, quote_reserve)
-        base_amount_out = int(base_amount_out * token_decimal)
+        raw_sol_in = int(sol_in * sol_decimal)
+        base_amount_out = sol_for_tokens(raw_sol_in, base_reserve, quote_reserve)
         print(f"Max Quote Amount In: {max_quote_amount_in / sol_decimal} | Base Amount Out: {base_amount_out / token_decimal}")
 
         print("Checking for existing token account...")
@@ -228,18 +227,15 @@ def sell(pair_address: str, percentage: int = 100, slippage: int = 5) -> bool:
         if token_balance == 0 or token_balance is None:
             print("Token balance is zero. Nothing to sell.")
             return False
-        print(f"Token Balance: {token_balance}")
 
         print("Calculating transaction amounts...")
         sol_decimal = 1e9
         token_decimal = 10**decimal
-        token_balance = token_balance * (percentage / 100)
-        base_amount_in = int(token_balance * token_decimal)
-        
+        base_amount_in = int(token_balance * (percentage / 100))
         base_reserve, quote_reserve = get_pool_reserves(pool_keys)
-        sol_out = tokens_for_sol(token_balance, base_reserve, quote_reserve)
+        sol_out = tokens_for_sol(base_amount_in, base_reserve, quote_reserve)
         slippage_adjustment = 1 - (slippage / 100)
-        min_quote_amount_out = int((sol_out * slippage_adjustment) * sol_decimal)
+        min_quote_amount_out = int((sol_out * slippage_adjustment))
         print(f"Base Amount In: {base_amount_in / token_decimal}, Minimum Quote Amount Out: {min_quote_amount_out / sol_decimal}")
 
         print("Creating swap instructions...")    
