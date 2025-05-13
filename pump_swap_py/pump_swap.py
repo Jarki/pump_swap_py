@@ -43,6 +43,13 @@ def buy(pair_address: str, sol_in: float = 0.1, slippage: int = 5) -> bool:
             return False
         print("Pool keys fetched successfully.")
 
+        print("Fetching creator vault info...")
+        creator_vault_authority, creator_vault_ata = get_creator_vault_info(pool_keys.creator)
+        if creator_vault_authority is None or creator_vault_ata is None:
+            print("No creator vault info found, aborting transaction.")
+            return False
+        print("Creator vault info fetched successfully.")
+
         mint = pool_keys.base_mint
         token_info = client.get_account_info_json_parsed(mint).value
         base_token_program = token_info.owner
@@ -117,6 +124,8 @@ def buy(pair_address: str, sol_in: float = 0.1, slippage: int = 5) -> bool:
             AccountMeta(pubkey=ASSOCIATED_TOKEN_PROGRAM, is_signer=False, is_writable=False),
             AccountMeta(pubkey=EVENT_AUTH, is_signer=False, is_writable=False),
             AccountMeta(pubkey=PF_AMM, is_signer=False, is_writable=False),
+            AccountMeta(pubkey=creator_vault_ata, is_signer=False, is_writable=True),
+            AccountMeta(pubkey=creator_vault_authority, is_signer=False, is_writable=False),
         ]
 
         data = bytearray()
@@ -182,6 +191,13 @@ def sell(pair_address: str, percentage: int = 100, slippage: int = 5) -> bool:
             print("No pool keys found, aborting transaction.")
             return False
         print("Pool keys fetched successfully.")
+
+        print("Fetching creator vault info...")
+        creator_vault_authority, creator_vault_ata = get_creator_vault_info(pool_keys.creator)
+        if creator_vault_authority is None or creator_vault_ata is None:
+            print("No creator vault info found, aborting transaction.")
+            return False
+        print("Creator vault info fetched successfully.")
 
         mint = pool_keys.base_mint
         token_info = client.get_account_info_json_parsed(mint).value
@@ -256,6 +272,8 @@ def sell(pair_address: str, percentage: int = 100, slippage: int = 5) -> bool:
             AccountMeta(pubkey=ASSOCIATED_TOKEN_PROGRAM, is_signer=False, is_writable=False),
             AccountMeta(pubkey=EVENT_AUTH, is_signer=False, is_writable=False),
             AccountMeta(pubkey=PF_AMM, is_signer=False, is_writable=False),
+            AccountMeta(pubkey=creator_vault_ata, is_signer=False, is_writable=True), 
+            AccountMeta(pubkey=creator_vault_authority, is_signer=False, is_writable=False),
         ]
 
         data = bytearray()
