@@ -3,10 +3,10 @@ from typing import List, Optional
 from solders.pubkey import Pubkey  # type: ignore
 from solders.rpc.responses import RpcKeyedAccount  # type: ignore
 from solana.rpc.commitment import Processed
-from solana.rpc.types import MemcmpOpts
+from solana.rpc.types import MemcmpOpts, TokenAccountOpts
 from construct import Padding, Struct, Int8ul, Int16ul, Int64ul, Bytes
 from config import client
-from constants import PF_AMM
+from constants import PF_AMM, WSOL, TOKEN_PROGRAM_ID
 
 POOL_LAYOUT = Struct(
     Padding(8),
@@ -19,6 +19,7 @@ POOL_LAYOUT = Struct(
     "pool_base_token_account" / Bytes(32),  # pubkey (32 bytes)
     "pool_quote_token_account" / Bytes(32),  # pubkey (32 bytes)
     "lp_supply" / Int64ul,  # u64
+    "coin_creator" / Bytes(32),  # pubkey (32 bytes)
 )
 
 @dataclass
@@ -28,6 +29,7 @@ class PoolKeys:
     quote_mint: Pubkey
     pool_base_token_account: Pubkey
     pool_quote_token_account: Pubkey
+    creator: Pubkey
 
 def fetch_pool_keys(pair_address: str):
     try:
@@ -41,7 +43,8 @@ def fetch_pool_keys(pair_address: str):
             base_mint=Pubkey.from_bytes(decoded_data.base_mint),
             quote_mint=Pubkey.from_bytes(decoded_data.quote_mint),
             pool_base_token_account=Pubkey.from_bytes(decoded_data.pool_base_token_account),
-            pool_quote_token_account=Pubkey.from_bytes(decoded_data.pool_quote_token_account)
+            pool_quote_token_account=Pubkey.from_bytes(decoded_data.pool_quote_token_account),
+            creator=Pubkey.from_bytes(decoded_data.coin_creator),
         )
     except:
         return None
@@ -137,3 +140,23 @@ def tokens_for_sol(base_amount_in, pool_base_token_reserves, pool_quote_token_re
     protocol_fee = int(quote_amount_out * .0005)
     fees = lp_fee + protocol_fee
     return int(quote_amount_out - fees)
+
+def get_creator_vault_info(creator: Pubkey) -> tuple[Pubkey|None, Pubkey|None]:
+    try:
+        creator_vault_authority, _ = Pubkey.find_program_address(
+            [
+                "creator_vault".encode(), 
+                bytes(creator),
+            ],
+            PF_AMM,
+        )
+        creator_vault_ata = client.get_token_accounts_by_owner_json_parsed(
+            creator_vault_authority,
+            TokenAccountOpts(
+                mint=WSOL,
+                program_id=TOKEN_PROGRAM_ID
+            )
+        ).value[0].pubkey
+        return creator_vault_authority, creator_vault_ata
+    except:
+        return None, None
