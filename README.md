@@ -53,3 +53,7 @@ Free tier RPCs do not permit GET_PROGRAM_ACCOUNTS()! You must use a paid RPC.
 **Does this code work on devnet?**
 
 No. 
+
+# Contributors
+
+https://github.com/Jarki
