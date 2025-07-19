@@ -15,9 +15,11 @@ Clone the repo, and add your Private Key (Base58 string) and RPC to the config.p
 
 # Contact
 
-Check out my tools: https://github.com/AL-THE-BOT-FATHER/bot-father-bundler
+My services are for hire. Contact me if you need help integrating the code into your own project.
 
-Telegram: @AL_THE_BOT_FATHER
+Telegram: https://t.me/AL_THE_BOT_FATHER
+
+Group Telegram: https://t.me/Bot_Mafia_Support
 
 
 # FAQS
