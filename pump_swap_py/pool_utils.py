@@ -160,3 +160,16 @@ def get_creator_vault_info(creator: Pubkey) -> tuple[Pubkey|None, Pubkey|None]:
         return creator_vault_authority, creator_vault_ata
     except:
         return None, None
+    
+def get_user_volume_accumulator(user: Pubkey) -> Pubkey:
+    try:
+        user_volume_accumulator, _ = Pubkey.find_program_address(
+            [
+                b"user_volume_accumulator", 
+                bytes(user),
+            ],
+            PF_AMM,
+        )
+        return user_volume_accumulator
+    except Exception as e:
+        return None

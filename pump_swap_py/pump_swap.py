@@ -45,6 +45,10 @@ def buy(pair_address: str, sol_in: float = 0.1, slippage: int = 5) -> bool:
 
         print("Fetching creator vault info...")
         creator_vault_authority, creator_vault_ata = get_creator_vault_info(pool_keys.creator)
+        user_volume_accumulator = get_user_volume_accumulator(payer_keypair.pubkey())
+        if user_volume_accumulator is None:
+            print("No user volume accumulator found, aborting transaction.")
+            return False
         if creator_vault_authority is None or creator_vault_ata is None:
             print("No creator vault info found, aborting transaction.")
             return False
@@ -126,6 +130,8 @@ def buy(pair_address: str, sol_in: float = 0.1, slippage: int = 5) -> bool:
             AccountMeta(pubkey=PF_AMM, is_signer=False, is_writable=False),
             AccountMeta(pubkey=creator_vault_ata, is_signer=False, is_writable=True),
             AccountMeta(pubkey=creator_vault_authority, is_signer=False, is_writable=False),
+            AccountMeta(pubkey=GLOBAL_VOLUME_ACCUMULATOR, is_signer=False, is_writable=True),
+            AccountMeta(pubkey=user_volume_accumulator, is_signer=False, is_writable=True),
         ]
 
         data = bytearray()
